@@ -10,7 +10,7 @@ Rust parser written with Nitra
 * Single and multiline commets
 
 ## Building
-* Install nitra ([https://confluence.jetbrains.com/display/Nitra/Install!](https://confluence.jetbrains.com/display/Nitra/Install))
+* Install nitra ([https://confluence.jetbrains.com/display/Nitra/Install](https://confluence.jetbrains.com/display/Nitra/Install))
 * Pull sources and build in recent version Visual Studio
 
 
