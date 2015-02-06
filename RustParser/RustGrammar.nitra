@@ -1,0 +1,407 @@
+﻿namespace RustParser
+{
+  syntax module RustGrammar
+  {
+    using CStyleComments;
+    using PrettyPrint;
+    using Outline;
+    using TokenNames;
+    using StandardSpanClasses;
+    using Whitespaces;
+    using Identifiers;
+
+	/// Implemented by description from http://doc.rust-lang.org/reference.html
+	/// but part of description is out of date and part of needed information is absent
+
+    [StartRule]
+    syntax CompilationUnit = CrateDefinition !Any;
+	
+	[Identifier]
+    token Identifier = !Keyword IdentifierBody;
+
+    alias Name = Identifier;
+
+	extend token IgnoreToken
+    {
+      | [SpanClass(Comment), ExplicitSpaces] SingleLineComment;
+      | [SpanClass(Comment), ExplicitSpaces] MultiLineComment;
+	  // TODO add documentation comments
+    }
+
+	// --------------------------------------
+    // Crate
+    // --------------------------------------
+
+	// TODO
+	syntax CrateDefinition = /*CrateAttributes* */ CrateItem*;
+
+	/*
+	syntax CrateAttributes
+	{
+		// TODO
+	}
+	*/
+
+	// TODO
+	syntax CrateItem              // item
+	{
+		// | ModItem            // mod_item
+		| FunctionItem       // fn_item
+		// | TypeItem           // type_item
+		// | StructItem         // struct_item
+		// | EnumItem           // enum_item
+		// | StaticItem         // static_item
+		// | TraitItem          // trait_item
+		// | ImplementationItem // impl_item
+		// | ExternalBlock      // extern_block
+	}
+
+	// --------------------------------------
+    // MODULE
+    // --------------------------------------
+
+	// TODO
+	
+		// --------------------------------------
+    // ATTRIBUTES
+    // --------------------------------------
+	 
+	syntax Attributes = ""; // TODO
+
+	// --------------------------------------
+    // TYPES
+    // --------------------------------------
+
+
+	syntax UnitType = "()";
+
+	syntax SimpleType
+	{
+		| UnitType
+		| "bool"
+		| "usize"
+		| "u8"
+		| "u16"
+		| "u32"
+		| "u64"
+		| "isize"
+		| "i8"
+		| "i16"
+		| "i32"
+		| "i64"
+		| "f32"
+		| "f64"
+		| "char"
+		| "str"
+	}
+
+	// --------------------------------------
+    // FUNCTION
+    // --------------------------------------
+
+	syntax FunctionItem = Attributes FunctionModifier* FunctionHeader sm '{' inl FunctionBody d '}';
+
+	syntax FunctionModifier
+	{
+		| "pub"
+		| "extern"
+		| "unsafe"
+	}
+
+	syntax FunctionHeader = "fn" sm Name '(' FormalParameters ')' ( sm "->" ReturningType)?;
+
+	syntax FormalParameter = Name ':' AnyType; // TODO
+	syntax FormalParameters = (FormalParameter; ',' sm)*;
+
+	syntax AnyType // TODO
+	{
+		| sm SimpleType
+		// | TypleType
+		// | ArrayType
+		// | SliceType
+
+		// | GenericType
+		// | BorrowedType
+		// | MutatingType
+	}
+
+	syntax ReturningType = AnyType; // TODO
+	
+	syntax FunctionBody = Statement* FunctionLastLineStatement?;
+	
+	syntax FunctionLastLineStatement
+	{
+		| Statemant = sm sm Statement nl
+		| Expression = sm sm Expression nl
+	}
+
+	syntax SyntaxBodyLastLine
+	{
+		| Statement
+		| Expression
+	}
+
+	syntax SyntaxBody = '{' inl Statement* SyntaxBodyLastLine? '}';
+
+	syntax IfBlock = "if" sm Expression sm SyntaxBody ("else" SyntaxBody )? ;
+
+	syntax LoopExpression {
+		| Expression
+		| "break"
+		| "continue"
+	}
+
+	syntax LoopStatement {
+		| Statement
+		| "break" ';'
+		| "continue" ';'
+	}
+
+	syntax LoopSyntaxBodyLastLine
+	{
+		| LoopStatement
+		| LoopExpression
+	}
+
+	syntax LoopSyntaxBody = '{' inl LoopStatement* LoopSyntaxBodyLastLine? '}';
+
+	syntax LoopBlock = "loop" LoopSyntaxBody ;
+	syntax WhileBlock = "while" Expression LoopSyntaxBody ;
+	syntax ForBlock = "for" Name "in" Expression LoopSyntaxBody ;
+
+	syntax RangeExpression = Expression ".." Expression;
+
+	[ExplicitSpaces]
+	token CallFunction = s Name "()" s;
+
+	syntax Expression // TODO
+	{
+		| Value				= Name
+		| RangeExpression	= RangeExpression ^ 1000
+		| Literal			= Literal ^ 800
+
+		| CallFunction		= CallFunction precedence 60
+
+		| LogicNot			= '!' Expression precedence 50 right-associative
+		| UnaryPlus			= '+' Expression precedence 50 right-associative
+		| UnaryMinus		= '-' Expression precedence 50 right-associative
+		| Derefencing		= '*' Expression precedence 50 right-associative
+		| Borrowing			= '&' Expression precedence 50 right-associative
+
+		| Multiplication	= Expression sm '*' sm Expression precedence 40
+		| Division			= Expression sm '/' sm Expression precedence 40
+		| Reminder			= Expression sm '%' sm Expression precedence 40
+
+		| Addition			= Expression sm '+' sm Expression precedence 30 
+		| Substraction		= Expression sm '-' sm Expression precedence 30
+
+		| Shl				= Expression sm "<<" sm Expression precedence 25
+		| Shr				= Expression sm ">>" sm Expression precedence 25
+
+		| Less				= Expression sm '<' sm Expression precedence 20
+		| LessOrEqual		= Expression sm "<=" sm Expression precedence 20
+		| Greate			= Expression sm '>' sm Expression precedence 20
+		| GreateOrEqual		= Expression sm ">=" sm Expression precedence 20
+
+		| Equal				= Expression sm "==" sm Expression precedence 15
+		| NotEqual			= Expression sm "!=" sm Expression precedence 15
+
+		| BitAnd			= Expression sm '&' sm Expression precedence 14
+
+		| BitXor			= Expression sm '^' sm Expression precedence 12
+		
+		| BitOr				= Expression sm '|' sm Expression precedence 11
+
+		| LogicalAnd		= Expression sm "&&" sm Expression precedence 10
+
+		| LogicalOr			= Expression sm "||" sm Expression precedence 9
+		
+		| Braces			= '(' Expression ')'
+		| MacrosExecuting   = Name '!' '(' (Expression; ',')* ')'
+		| IfBlock			= IfBlock
+		| LoopBlock			= LoopBlock
+		| WhileBlock		= WhileBlock
+		| ForBlock			= ForBlock
+	}
+
+	syntax Statement
+	{
+		| UnitExpression	= sm sm Expression ';' nl
+		| Assignment		= sm sm "let" sm Name (':' AnyType)? (sm '=' sm Expression)? ';' nl
+		| IfBlock			= sm sm IfBlock nl
+		| LoopBlock			= sm sm LoopBlock nl
+		| WhileBlock		= sm sm WhileBlock nl
+		| ForBlock			= sm sm ForBlock nl
+		| ReturnStatement	= sm sm "return" Expression ';' nl
+	} 
+	
+	// --------------------------------------
+    // STRUCTURES
+    // --------------------------------------
+
+	// TODO
+
+	// --------------------------------------
+    // ENUMS
+    // --------------------------------------
+
+	// TODO
+
+	// --------------------------------------
+    // MACROS
+    // --------------------------------------
+
+	// TODO
+
+	// --------------------------------------
+    // KEYWORDS & IDENTIFIERS
+    // --------------------------------------
+
+    regex KeywordToken = 
+		  "abstract"
+		| "alignof"
+		| "as"
+		| "be"
+		| "box"
+		| "break"
+		| "const"
+		| "continue"
+		| "crate"
+		| "do"
+		| "else"
+		| "enum"
+		| "extern"
+		| "false"
+		| "final"
+		| "fn"
+		| "for"
+		| "if"
+		| "impl"
+		| "in"
+		| "let"
+		| "loop"
+		| "macro"
+		| "match"
+		| "mod"
+		| "move"
+		| "mut"
+		| "offsetof"
+		| "override"
+		| "priv"
+		| "pub"
+		| "pure"
+		| "ref"
+		| "return"
+		| "sizeof"
+		| "static"
+		| "self"
+		| "struct"
+		| "super"
+		| "true"
+		| "trait"
+		| "type"
+		| "typeof"
+		| "unsafe"
+		| "unsized"
+		| "use"
+		| "virtual"
+		| "where"
+		| "while"
+		| "yield";
+				
+		[Keyword]
+		token Keyword = Name=KeywordToken !IdentifierPartCharacters;
+
+	    // --------------------------------------
+		// LITERALS
+		// --------------------------------------
+		
+		token Literal
+		{
+			| BooleanLiteral
+			// | ByteLiteral
+			| NumberLiteral
+			| CharLiteral
+			| StringLiteral
+			// | RawLiteral
+			// | ByteLiteral
+			// | ByteStringLiteral
+			// | RawByteStringLiteral
+		}
+
+		// Common regex
+		regex DecDigit = ['0'..'9'];
+		regex HexDigit = ['0'..'9', 'a'..'f', 'A'..'F'];
+		regex OctDigit = ['0'..'7'];
+		
+		// BooleanLiteral
+		regex BooleanLiteral = "true" | "false";
+
+		// NumberLiteral
+		regex IntegerLiteralSuffix = "us" | "u8" | "u16" | "u32" | "u64" | "is" | "i8" | "i16" | "i32" | "i64";
+		regex FloatLiteralSuffix = "f32" | "f64";
+		regex DecLiter = DecDigit | '_';
+		regex Exponent = ('E' | 'e') ('-' | '+')? DecLiter*;
+		
+		regex FloatOrDecIntegerLiteral =  DecDigit DecLiter* (IntegerLiteralSuffix | (('.' DecLiter+)? Exponent? FloatLiteralSuffix?));
+		
+		regex BinOctHexIntegerLiteral = '0' (  'b' ('0' | '1' | '_')+
+											  |'o' (OctDigit | '_')+
+											  |'x' (HexDigit | '_')+  ) IntegerLiteralSuffix?;
+
+		[SpanClass(Number)]
+		regex NumberLiteral = (FloatOrDecIntegerLiteral | BinOctHexIntegerLiteral);
+
+		// Text literals
+		regex FirstHexDigit = ['0'..'7'];
+
+		regex ByteHexadecimalEscapes = "\\x" FirstHexDigit HexDigit;
+		regex SimpleByteEscapes      = "\\n" | "\\r" | "\\t" | "\\0" | "\\\\";
+		regex ByteEscapes			 = SimpleByteEscapes | ByteHexadecimalEscapes;
+
+
+		regex HexDigitToE      = ['0'..'9', 'a'..'e', 'A'..'E'];
+		regex UnicodeEscapes_u = "\\u" FirstHexDigit HexDigit HexDigit HexDigit;
+		regex UnicodeEscapes_U = "\\U" FirstHexDigit HexDigitToE HexDigitToE HexDigitToE HexDigit HexDigit HexDigit HexDigit;
+		regex UnicodeEscapes   = UnicodeEscapes_u | UnicodeEscapes_U;
+
+
+		// CharLiteral
+		regex CharEscapes = ByteEscapes | "\\'";
+		regex CharNotAllowedChars = '\"';
+
+		token CharLiteralPart
+		{
+		  | Char = CharNotAllowedChars! Any
+		  | CharEscapes
+		}
+		
+		[SpanClass(Char)]
+		token CharLiteral = '\'' CharLiteralPart '\'';
+		
+
+		// StringLiteral				
+		regex StringEscapes = UnicodeEscapes | "\\\"";
+		regex StringNotAllowedChars = '\"';
+
+		token StringBody
+		{
+		  | SingleChar = !StringNotAllowedChars Any
+		  | ByteEscapes
+		  | StringEscapes
+		}
+		
+		token RegularStringLiteral = '\"' StringBody* '\"';
+		
+		[SpanClass(String)]
+		token StringLiteral = RegularStringLiteral;
+
+		// // --------------------------------------
+		// // ATTRIBUTES
+		// // --------------------------------------
+		// // TODO fix for rust
+		// 
+		// syntax AttributeArguments = "(" (Literal; "," sm)+ ")";
+		// syntax Attribute = "[" Name AttributeArguments? "]" nl;
+  }
+}
