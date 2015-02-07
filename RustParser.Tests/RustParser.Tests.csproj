@@ -54,6 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Tests\UseDeclarations.rs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Tests\ExternCrateDeclaration.rs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

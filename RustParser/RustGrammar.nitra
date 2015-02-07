@@ -46,6 +46,7 @@
 	syntax CrateItem              // item
 	{
 		| ExternCrateDeclaration
+		| UseDeclaration
 		// | ModItem            // mod_item
 		| FunctionItem       // fn_item
 		// | TypeItem           // type_item
@@ -57,12 +58,28 @@
 		// | ExternalBlock      // extern_block
 	}
 
-	syntax CrateName {
+	syntax CrateName 
+	{
 		| Name
 		| StringLiteral "as" Name
 	}
 
 	syntax ExternCrateDeclaration = "extern" "crate" CrateName ';' ;
+
+	syntax UseName 
+	{
+		| Name 
+		| "self"
+	}
+
+	syntax UseDeclarationTail 
+	{
+		| Rename = "as" Name
+		| UseAll = "::" '*'
+		| Specified = '{' (UseName; ',')* '}'
+	}
+
+	syntax UseDeclaration = "pub"? "use" (Name; "::")+ UseDeclarationTail? ';' ;
 
 	// --------------------------------------
     // MODULE
@@ -233,6 +250,8 @@
 		| WhileBlock		= WhileBlock
 		| ForBlock			= ForBlock
 	}
+
+	syntax PathExpression = ("::" Name)* ('<' (AnyType; ',')+ '>')? ;
 
 	syntax Statement
 	{
