@@ -45,6 +45,7 @@
 	// TODO
 	syntax CrateItem              // item
 	{
+		| ExternCrateDeclaration
 		// | ModItem            // mod_item
 		| FunctionItem       // fn_item
 		// | TypeItem           // type_item
@@ -56,13 +57,20 @@
 		// | ExternalBlock      // extern_block
 	}
 
+	syntax CrateName {
+		| Name
+		| StringLiteral "as" Name
+	}
+
+	syntax ExternCrateDeclaration = "extern" "crate" CrateName ';' ;
+
 	// --------------------------------------
     // MODULE
     // --------------------------------------
 
 	// TODO
 	
-		// --------------------------------------
+	// --------------------------------------
     // ATTRIBUTES
     // --------------------------------------
 	 

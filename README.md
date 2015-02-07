@@ -8,6 +8,9 @@ Rust parser written with Nitra
 * Basic control blocks: if, loop, while, for, break and contiue
 * let and unit statements
 * Single and multiline commets
+* Key words
+* Extern crate declarations
+
 
 ## Building
 * Install nitra ([https://confluence.jetbrains.com/display/Nitra/Install](https://confluence.jetbrains.com/display/Nitra/Install))
