@@ -177,8 +177,9 @@
 	syntax Expression // TODO
 	{
 		| Value				= Name
-		| RangeExpression	= RangeExpression ^ 1000
 		| Literal			= Literal ^ 800
+
+		| TypeCast			=  Expression "as" AnyType precedence 70
 
 		| CallFunction		= CallFunction precedence 60
 
@@ -198,23 +199,24 @@
 		| Shl				= Expression sm "<<" sm Expression precedence 25
 		| Shr				= Expression sm ">>" sm Expression precedence 25
 
+		| BitAnd			= Expression sm '&' sm Expression precedence 24
+
+		| BitXor			= Expression sm '^' sm Expression precedence 22
+		
+		| BitOr				= Expression sm '|' sm Expression precedence 21
+
+		| Equal				= Expression sm "==" sm Expression precedence 20
+		| NotEqual			= Expression sm "!=" sm Expression precedence 20
 		| Less				= Expression sm '<' sm Expression precedence 20
 		| LessOrEqual		= Expression sm "<=" sm Expression precedence 20
 		| Greate			= Expression sm '>' sm Expression precedence 20
 		| GreateOrEqual		= Expression sm ">=" sm Expression precedence 20
-
-		| Equal				= Expression sm "==" sm Expression precedence 15
-		| NotEqual			= Expression sm "!=" sm Expression precedence 15
-
-		| BitAnd			= Expression sm '&' sm Expression precedence 14
-
-		| BitXor			= Expression sm '^' sm Expression precedence 12
-		
-		| BitOr				= Expression sm '|' sm Expression precedence 11
-
+	
 		| LogicalAnd		= Expression sm "&&" sm Expression precedence 10
 
 		| LogicalOr			= Expression sm "||" sm Expression precedence 9
+	
+		| RangeExpression	= RangeExpression precedence 7
 		
 		| Braces			= '(' Expression ')'
 		| MacrosExecuting   = Name '!' '(' (Expression; ',')* ')'
