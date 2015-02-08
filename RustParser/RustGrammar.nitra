@@ -124,7 +124,7 @@
     // FUNCTION
     // --------------------------------------
 
-	syntax FunctionItem = Attributes FunctionModifier* FunctionHeader sm '{' inl FunctionBody d '}';
+	syntax FunctionItem = Attributes FunctionModifier* FunctionHeader sm '{' inl FunctionBody d '}' nl nl;
 
 	syntax FunctionModifier
 	{
@@ -245,6 +245,7 @@
 		
 		| Braces			= '(' Expression ')'
 		| MacrosExecuting   = Name '!' '(' (Expression; ',')* ')'
+	
 		| IfBlock			= IfBlock
 		| LoopBlock			= LoopBlock
 		| WhileBlock		= WhileBlock
@@ -256,7 +257,8 @@
 	syntax Statement
 	{
 		| UnitExpression	= sm sm Expression ';' nl
-		| Assignment		= sm sm "let" sm Name (':' AnyType)? (sm '=' sm Expression)? ';' nl
+		| Binding			= sm sm "let" (sm "mut")? sm Name (':' AnyType)? (sm '=' sm Expression)? ';' nl
+		| Assignment		= sm sm Name sm '=' sm Expression ';' nl
 		| IfBlock			= sm sm IfBlock nl
 		| LoopBlock			= sm sm LoopBlock nl
 		| WhileBlock		= sm sm WhileBlock nl
